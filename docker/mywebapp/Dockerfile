@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt .
 
-RUN python -m pip install --no-cache-dir pip==25.1.1 \
+RUN python -m pip install --no-cache-dir --upgrade pip==25.1.1 \
     && python -m pip install --no-cache-dir --requirement requirements.txt
 
 COPY app/ app/
