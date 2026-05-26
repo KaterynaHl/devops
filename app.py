@@ -41,6 +41,7 @@ def health_ready():
     except Exception as error:
         return str(error), 500
 
+
 @app.route("/matrix")
 def matrix():
     matrix_a = np.random.randint(1, 10, (10, 10))
@@ -53,6 +54,7 @@ def matrix():
         "matrix_b": matrix_b.tolist(),
         "product": product.tolist(),
     })
+
 
 @app.route("/notes", methods=["GET"])
 def get_notes():
