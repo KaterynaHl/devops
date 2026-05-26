@@ -3,11 +3,15 @@
 
 ## Variant
 
+```text
 N = 3
 
-V2 = 2
-V3 = 1
-V5 = 4
+V2 = (N % 2) + 1 = (3 % 2) + 1 = 2
+
+V3 = (N % 3) + 1 = (3 % 3) + 1 = 1
+
+V5 = (N % 5) + 1 = (3 % 5) + 1 = 4
+```
 
 ## Stack
 
@@ -42,6 +46,7 @@ Returns note details.
 
 ## Project Structure
 
+```text
 mywebapp/
 │
 ├── app/
@@ -73,6 +78,7 @@ mywebapp/
 ├── migrate.py
 ├── README.md
 └── requirements.txt
+```
 
 ## Deployment
 
