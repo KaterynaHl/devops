@@ -1,5 +1,5 @@
 {
-  "host": "127.0.0.1",
+  "host": "0.0.0.0",
   "port": 8000,
-  "database_url": "postgresql://mywebapp:password@127.0.0.1/mywebapp"
+  "database_url": "postgresql://mywebapp:password@database:5432/mywebapp"
 }
