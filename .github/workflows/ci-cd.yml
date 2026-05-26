@@ -1,6 +1,7 @@
+---
 name: CI/CD
 
-on:
+"on":
   push:
     branches:
       - lab3
@@ -40,7 +41,9 @@ jobs:
         run: flake8 app app.py migrate.py tests
 
       - name: Run yamllint
-        run: yamllint .github/workflows docker-compose.yml docker-compose.prod.yml
+        run: |
+          yamllint .github/workflows docker-compose.yml \
+            docker-compose.prod.yml
 
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
@@ -105,14 +108,16 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/')
         id: meta_branch
         run: |
-          echo "tags=${IMAGE_NAME}:latest,${IMAGE_NAME}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "tags=${IMAGE_NAME}:latest,${IMAGE_NAME}:sha-${GITHUB_SHA}" \
+            >> "$GITHUB_OUTPUT"
 
       - name: Prepare Docker metadata for tag
         if: startsWith(github.ref, 'refs/tags/')
         id: meta_tag
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
-          echo "tags=${IMAGE_NAME}:stable,${IMAGE_NAME}:${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "tags=${IMAGE_NAME}:stable,${IMAGE_NAME}:${TAG_NAME}" \
+            >> "$GITHUB_OUTPUT"
 
       - name: Build and push image from branch
         if: startsWith(github.ref, 'refs/heads/')
