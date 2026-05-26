@@ -58,4 +58,3 @@ def test_matrix_endpoint_returns_result():
     assert len(data["matrix_a"]) == 10
     assert len(data["matrix_b"]) == 10
     assert len(data["product"]) == 10
-    
