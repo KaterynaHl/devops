@@ -1,3 +1,5 @@
+import numpy as np
+
 from flask import Flask, request, jsonify
 from sqlalchemy import text
 
@@ -39,6 +41,18 @@ def health_ready():
     except Exception as error:
         return str(error), 500
 
+@app.route("/matrix")
+def matrix():
+    matrix_a = np.random.randint(1, 10, (10, 10))
+    matrix_b = np.random.randint(1, 10, (10, 10))
+
+    product = np.matmul(matrix_a, matrix_b)
+
+    return jsonify({
+        "matrix_a": matrix_a.tolist(),
+        "matrix_b": matrix_b.tolist(),
+        "product": product.tolist(),
+    })
 
 @app.route("/notes", methods=["GET"])
 def get_notes():
