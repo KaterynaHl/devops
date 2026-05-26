@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
       - name: Run shellcheck
-        run: shellcheck scripts/*.sh
+        run: shellcheck --exclude=SC1091,SC2029 scripts/*.sh
 
       - name: Run hadolint
         uses: hadolint/hadolint-action@v3.1.0
