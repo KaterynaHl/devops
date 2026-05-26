@@ -49,77 +49,98 @@ Returns note details.
 ```text
 mywebapp/
 │
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml
+│
 ├── app/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── database.py
 │   └── models.py
 │
+├── config/
+│   └── app_config.json
+│
+├── docker/
+│   ├── mywebapp/
+│   │   └── Dockerfile
+│   └── experiments/
+│       ├── golang/
+│       │   ├── Dockerfile.distroless
+│       │   ├── Dockerfile.scratch
+│       │   └── Dockerfile.single
+│       └── python/
+│           ├── Dockerfile.alphine
+│           ├── Dockerfile.bad
+│           └── Dockerfile.optimized
+│
 ├── docs/
+│   ├── lab3-report.md
 │   └── operator-sudoers.txt
 │
 ├── nginx/
-│   └── mywebapp.conf
+│   ├── mywebapp.conf
+│   └── docker-mywebapp.conf
 │
 ├── scripts/
-│   └── install.sh
+│   ├── install.sh
+│   ├── bootstrap-target.sh
+│   ├── setup-runner.sh
+│   ├── deploy.sh
+│   └── verify.sh
 │
 ├── systemd/
 │   ├── mywebapp.service
-│   └── mywebapp.socket
+│   ├── mywebapp.socket
+│   └── mywebapp-container.service
 │
-├── templates/
+├── tests/
+│   └── test_app.py
 │
-├── venv/
-│
+├── .dockerignore
+├── .flake8
 ├── .gitignore
+├── .gitattributes
 ├── app.py
 ├── config.json.example
+├── docker-compose.yml
+├── docker-compose.prod.yml
 ├── migrate.py
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+├── requirements-dev.txt
+└── lab2-report.md
 ```
 
-## Deployment
+## Laboratory Work 3: CI/CD
 
-Run:
+This branch contains CI/CD configuration for the project from Laboratory Works 1 and 2.
 
-```bash
-bash scripts/install.sh
+Pipeline includes:
 
-## Docker Compose
+- static analysis;
+- automated tests;
+- test coverage;
+- Docker image build;
+- GitHub Container Registry publishing;
+- deployment scripts;
+- verification scripts.
 
-Build and start all services:
+Workflow file:
 
-```bash
-docker compose up --build
+```text
+.github/workflows/ci-cd.yml
 ```
 
-Check application:
+Report:
 
-```bash
-curl http://localhost/
-curl http://localhost/health/alive
-curl http://localhost/health/ready
-curl -H "Accept: application/json" http://localhost/notes
+```text
+docs/lab3-report.md
 ```
 
-Create note:
+Runner setup documentation:
 
-```bash
-curl -X POST http://localhost/notes \
-  -H "Content-Type: application/json" \
-  -d "{\"title\":\"Test note\",\"content\":\"Hello from Docker\"}"
-```
-
-Stop services:
-
-```bash
-docker compose down
-```
-
-Stop services and remove database volume:
-
-```bash
-docker compose down -v
+```text
+docs/runner-setup.md
 ```
