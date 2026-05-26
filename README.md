@@ -86,3 +86,40 @@ Run:
 
 ```bash
 bash scripts/install.sh
+
+## Docker Compose
+
+Build and start all services:
+
+```bash
+docker compose up --build
+```
+
+Check application:
+
+```bash
+curl http://localhost/
+curl http://localhost/health/alive
+curl http://localhost/health/ready
+curl -H "Accept: application/json" http://localhost/notes
+```
+
+Create note:
+
+```bash
+curl -X POST http://localhost/notes \
+  -H "Content-Type: application/json" \
+  -d "{\"title\":\"Test note\",\"content\":\"Hello from Docker\"}"
+```
+
+Stop services:
+
+```bash
+docker compose down
+```
+
+Stop services and remove database volume:
+
+```bash
+docker compose down -v
+```
