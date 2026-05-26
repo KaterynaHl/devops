@@ -44,6 +44,67 @@ Creates new note.
 
 Returns note details.
 
+### GET /matrix
+
+Generates two random 10x10 matrices, multiplies them and returns the result in JSON format.
+
+## Health Checks
+
+### GET /health/alive
+
+Liveness probe endpoint.
+
+Returns:
+
+### GET /health/ready
+
+Readiness probe endpoint. Checks database connectivity before returning successful response.
+
+## Docker Compose
+
+Build and start all services:
+
+```bash
+docker compose up --build
+```
+
+Stop services:
+
+```bash
+docker compose down
+```
+
+Stop services and remove volumes:
+
+```bash
+docker compose down -v
+```
+
+## Docker Services
+
+The application stack contains:
+
+- web: Flask application
+- nginx: Reverse proxy
+- database: PostgreSQL database
+
+---
+
+## Container Networking
+
+Docker Compose creates isolated bridge network:
+
+```text
+mywebapp_network
+```
+
+All containers communicate internally through this network.
+
+
+## Persistent Storage
+
+This allows database data to survive container restart and recreation.
+
 ## Project Structure
 
 ```text
@@ -55,11 +116,35 @@ mywebapp/
 │   ├── database.py
 │   └── models.py
 │
+├── config/
+│   └── app_config.json
+│
+├── docker/
+│   │
+│   ├── mywebapp/
+│   │   └── Dockerfile
+│   │
+│   └── experiments/
+│       │
+│       ├── python/
+│       │   ├── Dockerfile.bad
+│       │   ├── Dockerfile.optimized
+│       │   ├── Dockerfile.alpine
+│       │   └── README.md
+│       │
+│       └── golang/
+│           ├── Dockerfile.single
+│           ├── Dockerfile.scratch
+│           ├── Dockerfile.distroless
+│           └── README.md
+│
 ├── docs/
-│   └── operator-sudoers.txt
+│   ├── operator-sudoers.txt
+│   └── lab2-report.md
 │
 ├── nginx/
-│   └── mywebapp.conf
+│   ├── mywebapp.conf
+│   └── docker-mywebapp.conf
 │
 ├── scripts/
 │   └── install.sh
@@ -70,11 +155,12 @@ mywebapp/
 │
 ├── templates/
 │
-├── venv/
-│
+├── .dockerignore
 ├── .gitignore
+│
 ├── app.py
 ├── config.json.example
+├── docker-compose.yml
 ├── migrate.py
 ├── README.md
 └── requirements.txt
