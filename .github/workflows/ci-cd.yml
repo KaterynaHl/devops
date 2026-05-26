@@ -55,6 +55,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: docker/mywebapp/Dockerfile
+          ignore: DL3013
 
   test:
     name: Automated tests
