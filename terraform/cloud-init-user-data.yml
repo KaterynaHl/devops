@@ -1,0 +1,27 @@
+#cloud-config
+
+users:
+  - name: ansible
+    groups:
+      - sudo
+    shell: /bin/bash
+    sudo:
+      - ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+  - name: teacher
+    groups:
+      - sudo
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: "12345678"
+
+ssh_pwauth: true
+
+package_update: true
+
+packages:
+  - python3
+  - python3-apt
+  - openssh-server
