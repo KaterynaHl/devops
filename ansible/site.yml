@@ -1,0 +1,19 @@
+---
+- name: Configure common users and packages
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Configure PostgreSQL database node
+  hosts: db
+  become: true
+  roles:
+    - database
+
+- name: Configure web application worker node
+  hosts: workers
+  become: true
+  roles:
+    - webapp
+    - nginx
