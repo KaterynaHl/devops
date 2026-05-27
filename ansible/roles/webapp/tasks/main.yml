@@ -1,0 +1,92 @@
+---
+- name: Install web application packages
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
+      - git
+    state: present
+
+- name: Ensure app system user exists
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Ensure operator user exists
+  ansible.builtin.user:
+    name: "{{ operator_user }}"
+    shell: /bin/bash
+    password: "{{ operator_password | password_hash('sha512') }}"
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_directory }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+
+- name: Copy application source
+  ansible.builtin.copy:
+    src: "../../"
+    dest: "{{ app_directory }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+    directory_mode: "0755"
+  notify: Restart mywebapp
+
+- name: Create application config directory
+  ansible.builtin.file:
+    path: /etc/mywebapp
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+
+- name: Generate application config
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: /etc/mywebapp/config.json
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0640"
+  notify: Restart mywebapp
+
+- name: Create Python virtual environment
+  ansible.builtin.command:
+    cmd: python3 -m venv "{{ app_directory }}/venv"
+    creates: "{{ app_directory }}/venv/bin/python"
+
+- name: Install Python dependencies
+  ansible.builtin.pip:
+    requirements: "{{ app_directory }}/requirements.txt"
+    virtualenv: "{{ app_directory }}/venv"
+
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: mywebapp.service.j2
+    dest: /etc/systemd/system/mywebapp.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart mywebapp
+
+- name: Configure operator sudo permissions
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/operator
+    content: |
+      operator ALL=(ALL) NOPASSWD: /bin/systemctl start mywebapp, /bin/systemctl stop mywebapp, /bin/systemctl restart mywebapp, /bin/systemctl status mywebapp, /bin/systemctl reload nginx
+    owner: root
+    group: root
+    mode: "0440"
+
+- name: Enable and start web application
+  ansible.builtin.systemd:
+    name: mywebapp
+    enabled: true
+    state: started
+    daemon_reload: true
