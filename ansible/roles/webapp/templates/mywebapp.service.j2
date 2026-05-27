@@ -1,0 +1,16 @@
+[Unit]
+Description=MyWebApp
+After=network.target
+
+[Service]
+User={{ app_user }}
+Group={{ app_user }}
+WorkingDirectory={{ app_directory }}
+
+ExecStartPre={{ app_directory }}/venv/bin/python {{ app_directory }}/migrate.py
+ExecStart={{ app_directory }}/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:{{ app_port }} app:app
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
