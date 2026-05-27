@@ -1,0 +1,21 @@
+---
+student_number: 3
+
+app_name: mywebapp
+app_user: app
+operator_user: operator
+
+app_port: 8000
+app_directory: /opt/mywebapp
+
+db_name: mywebapp
+db_user: mywebapp
+db_password: password
+db_port: 5432
+
+teacher_password: "12345678"
+operator_password: "12345678"
+
+worker_host: "{{ groups['workers'][0] }}"
+db_host: "{{ groups['db'][0] }}"
+db_host_ip: "{{ hostvars[groups['db'][0]]['ansible_host'] }}"
