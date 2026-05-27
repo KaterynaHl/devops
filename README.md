@@ -1,146 +1,292 @@
 # MyWebApp
 Опис застосунку: Notes Service — простий сервіс для зберігання текстових нотаток.
 
+## Laboratory Work 4: IaC, Terraform and Ansible
+
+This branch contains Infrastructure as Code configuration for deploying `mywebapp` on two separate virtual machines.
+
+The application is based on previous laboratory works:
+
+- Lab 1: Flask Notes Service, PostgreSQL, nginx, systemd
+- Lab 2: Docker and Docker Compose configuration
+- Lab 3: CI/CD pipeline, tests, deployment and verification scripts
+- Lab 4: Terraform provisioning and Ansible configuration management
+
+---
+
 ## Variant
+
+Student number:
 
 ```text
 N = 3
-
-V2 = (N % 2) + 1 = (3 % 2) + 1 = 2
-
-V3 = (N % 3) + 1 = (3 % 3) + 1 = 1
-
-V5 = (N % 5) + 1 = (3 % 5) + 1 = 4
 ```
 
-## Stack
+Variant calculation:
 
-- Python
-- Flask
-- PostgreSQL
-- Nginx
-- systemd
+```text
+V2 = (3 % 2) + 1 = 2
+V3 = (3 % 3) + 1 = 1
+V5 = (3 % 5) + 1 = 4
+```
 
-## Features
+Selected variant:
 
-- Health checks
-- HTML responses
-- JSON responses
-- Reverse proxy
-- Database migration
-- Socket activation
+- Application: Notes Service
+- Database: PostgreSQL
+- Configuration method: config file
+- Application port: 8000
 
-## API
+---
 
-### GET /notes
+## Architecture
 
-Returns all notes.
+The system is deployed on two virtual machines:
 
-### POST /notes
+```text
+client → VM1(worker): nginx → web application → VM2(db): PostgreSQL
+```
 
-Creates new note.
+### VM1: worker
 
-### GET /notes/<id>
+Contains:
 
-Returns note details.
+- nginx reverse proxy
+- Flask web application
+- systemd service for the application
+- `app` system user
+- `operator` user with restricted sudo permissions
 
-## Project Structure
+### VM2: db
+
+Contains:
+
+- PostgreSQL database
+- database user and database for the application
+- firewall rules that allow PostgreSQL access only from the worker VM
+
+---
+
+## Terraform
+
+Terraform is used for infrastructure provisioning.
+
+Terraform files are located in:
+
+```text
+terraform/
+```
+
+Terraform creates:
+
+- `mywebapp-worker` VM
+- `mywebapp-db` VM
+- private virtual network
+- cloud-init disks
+- base Ubuntu cloud image volumes
+
+Cloud-init creates users on both VMs:
+
+- `ansible`
+- `teacher`
+
+The `ansible` user has passwordless sudo access and is used by Ansible for configuration management.
+
+### Terraform commands
+
+```bash
+cd terraform
+terraform init
+terraform apply
+terraform output
+```
+
+To destroy infrastructure:
+
+```bash
+terraform destroy
+```
+
+---
+
+## Ansible
+
+Ansible is used for configuration management.
+
+Ansible files are located in:
+
+```text
+ansible/
+```
+
+Inventory file:
+
+```text
+ansible/inventory.ini
+```
+
+The inventory is divided into two groups:
+
+```ini
+[workers]
+worker ansible_host=<worker-ip>
+
+[db]
+db ansible_host=<db-ip>
+
+[all:vars]
+ansible_user=ansible
+ansible_python_interpreter=/usr/bin/python3
+```
+
+After running `terraform output`, update `ansible/inventory.ini` with actual VM IP addresses.
+
+---
+
+## Ansible Roles
+
+The playbook `ansible/site.yml` runs the following roles:
+
+### common
+
+Runs on all virtual machines.
+
+Responsibilities:
+
+- install common packages
+- ensure `teacher` user exists
+- create `/home/student/gradebook` with student number `3`
+
+### database
+
+Runs on the `db` VM.
+
+Responsibilities:
+
+- install PostgreSQL
+- create application database
+- create database user
+- configure PostgreSQL listen address
+- allow PostgreSQL connections only from worker VM
+- configure firewall restrictions
+
+### webapp
+
+Runs on the `worker` VM.
+
+Responsibilities:
+
+- create `app` system user
+- create `operator` user
+- copy application source code
+- create Python virtual environment
+- install dependencies
+- generate `/etc/mywebapp/config.json` using Ansible template
+- install systemd unit for `mywebapp`
+- configure restricted sudo permissions for `operator`
+
+### nginx
+
+Runs on the `worker` VM.
+
+Responsibilities:
+
+- install nginx
+- generate nginx reverse proxy configuration using Ansible template
+- proxy requests to `127.0.0.1:8000`
+- disable default nginx site
+- start and enable nginx service
+
+---
+
+## Run Ansible
+
+Install required Ansible collections:
+
+```bash
+cd ansible
+ansible-galaxy collection install -r requirements.yml
+```
+
+Run the playbook:
+
+```bash
+ansible-playbook site.yml
+```
+
+Check idempotency by running the playbook again:
+
+```bash
+ansible-playbook site.yml
+```
+
+The second run should not introduce changes if the system already matches the desired configuration.
+
+---
+
+## Verification
+
+After Terraform and Ansible complete successfully, verify the application through the worker VM:
+
+```bash
+curl http://<worker-ip>/
+curl http://<worker-ip>/health/alive
+curl http://<worker-ip>/health/ready
+curl -H "Accept: application/json" http://<worker-ip>/notes
+```
+
+Expected results:
+
+- `/` returns HTML page with endpoint list
+- `/health/alive` returns `OK`
+- `/health/ready` returns `OK` if the worker VM can connect to PostgreSQL on the db VM
+- `/notes` returns notes list in JSON format
+
+---
+
+## Documentation
+
+Additional documentation:
+
+```text
+docs/lab4-report.md
+docs/lab4-runbook.md
+terraform/README.md
+```
+
+---
+
+## Repository Structure for Lab 4
 
 ```text
 mywebapp/
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── cloud-init-user-data.yml
+│   └── README.md
 │
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml
-│
-├── app/
-│   ├── __init__.py
-│   ├── config.py
-│   ├── database.py
-│   └── models.py
-│
-├── config/
-│   └── app_config.json
-│
-├── docker/
-│   ├── mywebapp/
-│   │   └── Dockerfile
-│   └── experiments/
-│       ├── golang/
-│       │   ├── Dockerfile.distroless
-│       │   ├── Dockerfile.scratch
-│       │   └── Dockerfile.single
-│       └── python/
-│           ├── Dockerfile.alphine
-│           ├── Dockerfile.bad
-│           └── Dockerfile.optimized
+├── ansible/
+│   ├── ansible.cfg
+│   ├── inventory.ini
+│   ├── requirements.yml
+│   ├── site.yml
+│   ├── group_vars/
+│   │   └── all.yml
+│   └── roles/
+│       ├── common/
+│       ├── database/
+│       ├── webapp/
+│       └── nginx/
 │
 ├── docs/
-│   ├── lab3-report.md
-│   └── operator-sudoers.txt
+│   ├── lab4-report.md
+│   └── lab4-runbook.md
 │
-├── nginx/
-│   ├── mywebapp.conf
-│   └── docker-mywebapp.conf
-│
-├── scripts/
-│   ├── install.sh
-│   ├── bootstrap-target.sh
-│   ├── setup-runner.sh
-│   ├── deploy.sh
-│   └── verify.sh
-│
-├── systemd/
-│   ├── mywebapp.service
-│   ├── mywebapp.socket
-│   └── mywebapp-container.service
-│
-├── tests/
-│   └── test_app.py
-│
-├── .dockerignore
-├── .flake8
-├── .gitignore
-├── .gitattributes
+├── app/
 ├── app.py
-├── config.json.example
-├── docker-compose.yml
-├── docker-compose.prod.yml
 ├── migrate.py
-├── README.md
 ├── requirements.txt
-├── requirements-dev.txt
-└── lab2-report.md
-```
-
-## Laboratory Work 3: CI/CD
-
-This branch contains CI/CD configuration for the project from Laboratory Works 1 and 2.
-
-Pipeline includes:
-
-- static analysis;
-- automated tests;
-- test coverage;
-- Docker image build;
-- GitHub Container Registry publishing;
-- deployment scripts;
-- verification scripts.
-
-Workflow file:
-
-```text
-.github/workflows/ci-cd.yml
-```
-
-Report:
-
-```text
-docs/lab3-report.md
-```
-
-Runner setup documentation:
-
-```text
-docs/runner-setup.md
+└── README.md
 ```
